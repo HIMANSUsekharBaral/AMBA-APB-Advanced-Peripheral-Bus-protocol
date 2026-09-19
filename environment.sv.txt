@@ -1,0 +1,25 @@
+class environment;
+ generator gen;
+ driver drv;
+ monitor mon;
+ scoreboard sco;
+ mailbox #(transaction) gen2drv;
+ mailbox #(transaction) mon2sco;
+ function new(virtual apb_interface don);
+  gen2drv = new();
+  mon2sco = new();
+  gen = new(gen2drv);
+  drv = new(don, gen2drv);
+  mon = new(don, mon2sco);
+  sco = new(mon2sco);
+ endfunction
+
+ task run();
+  fork
+   gen.run();
+   drv.run();
+   mon.run();
+   sco.run();
+  join
+ endtask
+endclass

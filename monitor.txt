@@ -1,0 +1,46 @@
+class monitor;
+
+ mailbox #(transaction) mon2sco;
+ transaction tr;
+ virtual apb_interface don;
+
+ function new(virtual apb_interface don, mailbox #(transaction) mon2sco);
+  this.don = don;
+  this.mon2sco = mon2sco;
+ endfunction
+
+ task run();
+
+  forever
+  begin
+
+   @(posedge don.pclk);
+
+   if(don.psel && don.penable && don.pready)
+   begin
+
+    tr = new();
+
+    tr.paddr    = don.paddr;
+    tr.pwdata   = don.pwdata;
+    tr.pwrite   = don.pwrite;
+    tr.prdata   = don.prdata;
+    tr.pready   = don.pready;
+    tr.pslverr  = don.pslverr;
+    tr.psel     = don.psel;
+    tr.penable  = don.penable;
+
+    if(tr.pwrite)
+     tr.display("MONITOR WRITE");
+    else
+     tr.display("MONITOR READ");
+
+    mon2sco.put(tr.copy());
+
+   end
+
+  end
+
+ endtask
+
+endclass

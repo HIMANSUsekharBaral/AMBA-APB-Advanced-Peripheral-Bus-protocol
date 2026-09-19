@@ -1,0 +1,55 @@
+// Code your testbench here
+// or browse Examples
+`include "interface.sv"
+`include "package.sv"
+
+import my_pkg::*;
+
+module tb;
+
+ apb_interface don();
+
+ environment env;
+
+ initial
+  don.pclk = 1'b0;
+
+ always #20
+  don.pclk = ~don.pclk;
+
+ initial
+ begin
+  don.presetn = 1'b0;
+  #45;
+  don.presetn = 1'b1;
+ end
+
+ apb_s dut(
+  .pclk(don.pclk),
+  .presetn(don.presetn),
+  .paddr(don.paddr),
+  .psel(don.psel),
+  .penable(don.penable),
+  .pwdata(don.pwdata),
+  .pwrite(don.pwrite),
+  .prdata(don.prdata),
+  .pready(don.pready),
+  .pslverr(don.pslverr)
+ );
+
+ initial
+ begin
+  env = new(don);
+  env.gen.count = 3;
+  env.run();
+ end
+
+ initial
+ begin
+  $dumpfile("dump.vcd");
+  $dumpvars(0,tb);
+  #1000;
+  $finish;
+ end
+
+endmodule

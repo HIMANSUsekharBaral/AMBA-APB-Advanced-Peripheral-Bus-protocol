@@ -1,0 +1,68 @@
+class driver;
+
+ mailbox #(transaction) gen2drv;
+ transaction tr;
+ virtual apb_interface don;
+
+ function new(virtual apb_interface don, mailbox #(transaction) gen2drv);
+  this.don = don;
+  this.gen2drv = gen2drv;
+ endfunction
+
+ task run();
+
+  forever
+  begin
+
+   gen2drv.get(tr);
+
+   if(tr.pwrite)
+   begin
+
+    tr.display("DRIVER WRITE");
+
+    @(posedge don.pclk);
+    don.psel    <= 1'b1;
+    don.penable <= 1'b0;
+    don.pwrite  <= 1'b1;
+    don.paddr   <= tr.paddr;
+    don.pwdata  <= tr.pwdata;
+
+    @(posedge don.pclk);
+    don.penable <= 1'b1;
+
+    wait(don.pready);
+
+    @(posedge don.pclk);
+    don.psel    <= 1'b0;
+    don.penable <= 1'b0;
+
+   end
+
+   else
+   begin
+
+    tr.display("DRIVER READ");
+
+    @(posedge don.pclk);
+    don.psel    <= 1'b1;
+    don.penable <= 1'b0;
+    don.pwrite  <= 1'b0;
+    don.paddr   <= tr.paddr;
+
+    @(posedge don.pclk);
+    don.penable <= 1'b1;
+
+    wait(don.pready);
+
+    @(posedge don.pclk);
+    don.psel    <= 1'b0;
+    don.penable <= 1'b0;
+
+   end
+
+  end
+
+ endtask
+
+endclass

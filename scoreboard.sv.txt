@@ -1,0 +1,54 @@
+class scoreboard;
+
+ mailbox #(transaction) mon2sco;
+ transaction tr;
+
+ bit [7:0] mem [0:15];
+
+ function new(mailbox #(transaction) mon2sco);
+  this.mon2sco = mon2sco;
+ endfunction
+
+ task run();
+
+  forever
+  begin
+
+   mon2sco.get(tr);
+
+   if(tr.pwrite)
+   begin
+
+    mem[tr.paddr] = tr.pwdata;
+
+    $display("--------------------------------");
+    $display("[SCOREBOARD WRITE]");
+    $display("Address        = %0d", tr.paddr);
+    $display("Expected Data  = %0h", tr.pwdata);
+    $display("--------------------------------");
+
+   end
+
+   else
+   begin
+
+    $display("--------------------------------");
+    $display("[SCOREBOARD READ]");
+    $display("Address        = %0d", tr.paddr);
+    $display("Expected Data  = %0h", mem[tr.paddr]);
+    $display("Received Data  = %0h", tr.prdata);
+
+    if(mem[tr.paddr] == tr.prdata)
+     $display("RESULT : TEST PASSED");
+    else
+     $display("RESULT : TEST FAILED");
+
+    $display("--------------------------------");
+
+   end
+
+  end
+
+ endtask
+
+endclass

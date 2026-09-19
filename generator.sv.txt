@@ -1,0 +1,32 @@
+class generator;
+
+ mailbox #(transaction) gen2drv;
+ int count;
+ transaction tr;
+
+ function new(mailbox #(transaction) gen2drv);
+  this.gen2drv = gen2drv;
+ endfunction
+
+ task run();
+
+  repeat(count)
+  begin
+
+   tr = new();
+
+   assert(tr.randomize());
+
+   tr.pwrite = 1'b1;
+   gen2drv.put(tr.copy());
+   tr.display("GEN WRITE");
+
+   tr.pwrite = 1'b0;
+   gen2drv.put(tr.copy());
+   tr.display("GEN READ");
+
+  end
+
+ endtask
+
+endclass
